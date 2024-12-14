@@ -1,3 +1,10 @@
+package Controllers;
+
+import Classes.Epic;
+import Classes.Subtask;
+import Classes.Task;
+import Classes.TaskStatus;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -31,7 +38,6 @@ public class TaskManager {
         epic.createSubtaskId(subtask);
         subtasks.put(subtask.getId(), subtask);
         updateEpicStatus(epic);
-//        updateEpicStatus(epics.get(subtask.getEpicId()));
         return subtask;
     }
 
@@ -79,6 +85,7 @@ public class TaskManager {
 
     public void removeAllEpics() {
         epics.clear();
+        subtasks.clear();
 
     }
 
