@@ -9,6 +9,12 @@ public class Task {
     private TaskStatus taskStatus;
 
 
+    public Task(int id, String taskName, String description, TaskStatus taskStatus) {
+        this.id = id;
+        this.taskName = taskName;
+        this.description = description;
+        this.taskStatus = taskStatus;
+    }
     public Task(String taskName, String description, TaskStatus taskStatus) {
         this.taskName = taskName;
         this.description = description;
