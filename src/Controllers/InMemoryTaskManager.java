@@ -40,7 +40,6 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask createSubtasks(Subtask subtask) {
         if (subtask == null) {
-            System.out.println("Subtask is null!");
             return null;
         }
         subtask.setId(nextId());
@@ -111,11 +110,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeAllSubtasks() {
-        clearEpicSubtasks();
-        subtasks.clear();
         for (Epic epic : epics.values()) {
+            epic.clearSubtasks();
             updateEpicStatus(epic);
         }
+        subtasks.clear();
     }
 
     @Override
@@ -153,7 +152,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Task getTaskById(Integer id) {
         Task task = tasks.get(id);
         historyManager.addToHistory(task);
-        return tasks.get(id);
+        return task;
     }
 
     @Override
@@ -163,9 +162,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask getSubtaskById(Integer id) {
-        Subtask subTask = subtasks.get(id);
-        historyManager.addToHistory(subTask);
-        return subtasks.get(id);
+        Subtask subtask = subtasks.get(id);
+        historyManager.addToHistory(subtask);
+        return subtask;
     }
 
 
