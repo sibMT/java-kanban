@@ -24,13 +24,13 @@ class InMemoryHistoryManagerTest {
     @BeforeEach
     void init() {
         historyManager = Managers.getDefaultHistory();
-        task1 = new Task(1,"Сделать уборку", "Помыть пол",TaskStatus.NEW);
-        task2 = new Task(2,"Пойти в магазин", "Купить молоко", TaskStatus.IN_PROGRESS);
-        epic1 = new Epic(3, "Встретиться с друзьями", "Забронировать кафе",TaskStatus.NEW);
-        epic2 = new Epic(4,"Пойти на работу", "Проснуться в 6 утра",TaskStatus.NEW);
-        subtask1 =  new Subtask(5,3, "Определиться со временем", "Уведомить",TaskStatus.NEW);
-        subtask2 = new Subtask(6,3,"Notification", "Meeting 10oclock", TaskStatus.NEW);
-        subtask3 = new Subtask(7,4, "Поставить будильник", "Charge Phone", TaskStatus.NEW);
+        task1 = new Task(1, "Сделать уборку", "Помыть пол", TaskStatus.NEW);
+        task2 = new Task(2, "Пойти в магазин", "Купить молоко", TaskStatus.IN_PROGRESS);
+        epic1 = new Epic(3, "Встретиться с друзьями", "Забронировать кафе", TaskStatus.NEW);
+        epic2 = new Epic(4, "Пойти на работу", "Проснуться в 6 утра", TaskStatus.NEW);
+        subtask1 = new Subtask(5, 3, "Определиться со временем", "Уведомить", TaskStatus.NEW);
+        subtask2 = new Subtask(6, 3, "Notification", "Meeting 10oclock", TaskStatus.NEW);
+        subtask3 = new Subtask(7, 4, "Поставить будильник", "Charge Phone", TaskStatus.NEW);
     }
 
     @Test
@@ -70,7 +70,7 @@ class InMemoryHistoryManagerTest {
                 " Classes.Subtask{id=5, name=Определиться со временем, status=NEW}, Classes.Subtask{id=6," +
                 " name=Notification, status=NEW}, Classes.Subtask{id=7, name=Поставить будильник, status=NEW}]";
         String real = historyManager.getHistory().toString();
-        Assertions.assertEquals(expected,real);
+        Assertions.assertEquals(expected, real);
     }
 
     @Test
@@ -111,6 +111,6 @@ class InMemoryHistoryManagerTest {
                 " Classes.Subtask{id=6, name=Notification, status=NEW}, Classes.Subtask{id=7, name=Поставить будильник," +
                 " status=NEW}]";
         String real = historyManager.getHistory().toString();
-        Assertions.assertEquals(expected,real);
+        Assertions.assertEquals(expected, real);
     }
 }
