@@ -1,4 +1,4 @@
-package classes;
+package Classes;
 
 public class Subtask extends Task {
 
@@ -9,9 +9,8 @@ public class Subtask extends Task {
         super(taskName, description, taskStatus);
         this.epicId = epic.getId();
     }
-
-    public Subtask(int id, int epicId, String taskName, String description, TaskStatus taskStatus) {
-        super(id, taskName, description, taskStatus);
+    public Subtask(int id, int epicId,String taskName, String description, TaskStatus taskStatus) {
+        super(id,taskName,description,taskStatus);
         this.epicId = epicId;
     }
 

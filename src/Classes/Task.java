@@ -1,4 +1,4 @@
-package classes;
+package Classes;
 
 import java.util.Objects;
 
@@ -15,7 +15,6 @@ public class Task {
         this.description = description;
         this.taskStatus = taskStatus;
     }
-
     public Task(String taskName, String description, TaskStatus taskStatus) {
         this.taskName = taskName;
         this.description = description;
