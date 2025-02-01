@@ -1,11 +1,5 @@
-import Classes.Epic;
-import Classes.Subtask;
-import Classes.Task;
-import Classes.TaskStatus;
-import Controllers.InMemoryHistoryManager;
-import Controllers.InMemoryTaskManager;
-import Controllers.Managers;
-import Controllers.TaskManager;
+import controllers.Managers;
+import controllers.TaskManager;
 
 public class Main {
 

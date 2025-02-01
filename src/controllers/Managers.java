@@ -1,9 +1,9 @@
-package Controllers;
+package controllers;
 
 public class Managers {
 
     public static TaskManager getDefault() {
-        HistoryManager historyManager =getDefaultHistory();
+        HistoryManager historyManager = getDefaultHistory();
         return new InMemoryTaskManager(historyManager);
     }
 
