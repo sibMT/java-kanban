@@ -1,6 +1,6 @@
-package Controllers;
+package controllers;
 
-import Classes.Task;
+import classes.Task;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;

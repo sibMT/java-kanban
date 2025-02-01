@@ -1,9 +1,9 @@
-package Controllers;
+package controllers;
 
-import Classes.Epic;
-import Classes.Subtask;
-import Classes.Task;
-import Classes.TaskStatus;
+import classes.Epic;
+import classes.Subtask;
+import classes.Task;
+import classes.TaskStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 
