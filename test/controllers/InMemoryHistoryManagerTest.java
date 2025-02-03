@@ -74,8 +74,8 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void sizeShouldNotMoreTenElements() {
-        final int historySize = 10;
+    void sizeShouldNotMoreSevenElements() {
+        final int historySize = 7;
         historyManager.addToHistory(task1);
         historyManager.addToHistory(task2);
         historyManager.addToHistory(epic1);
