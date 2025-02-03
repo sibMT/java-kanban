@@ -19,9 +19,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     public static class Node<TaskT> {
         public Node<TaskT> prev;
         public Node<TaskT> next;
-        public TaskT data;
+        public Task data;
 
-        public Node(Node<TaskT> prev, Node<TaskT> next, TaskT data) {
+        public Node(Node<TaskT> prev, Node<TaskT> next, Task data) {
             this.prev = prev;
             this.next = next;
             this.data = data;
