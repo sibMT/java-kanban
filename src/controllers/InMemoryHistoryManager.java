@@ -16,12 +16,12 @@ public class InMemoryHistoryManager implements HistoryManager {
         this.obtainedTask = new HashMap<>();
     }
 
-    public static class Node<Task> {
-        public Node<Task> prev;
-        public Node<Task> next;
-        public Task data;
+    public static class Node<TaskT> {
+        public Node<TaskT> prev;
+        public Node<TaskT> next;
+        public TaskT data;
 
-        public Node(Node<Task> prev, Node<Task> next, Task data) {
+        public Node(Node<TaskT> prev, Node<TaskT> next, TaskT data) {
             this.prev = prev;
             this.next = next;
             this.data = data;
