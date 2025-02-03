@@ -20,6 +20,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         public Node<Task> prev;
         public Node<Task> next;
         public Task data;
+        //комментарий для коммита,проверка ветки
 
         public Node(Node<Task> prev, Node<Task> next, Task data) {
             this.prev = prev;
