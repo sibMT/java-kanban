@@ -101,7 +101,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeAllTasks() {
         for (Integer taskId : tasks.keySet()) {
             historyManager.remove(taskId);
-        }// добавил цикл для удаления истории во всех removeAll(комментарий для коммита)
+        } // добавил цикл для удаления истории во всех removeAll(комментарий для коммита)
         tasks.clear();
     }
 
@@ -109,7 +109,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeAllEpics() {
         for (Integer epicId : epics.keySet()) {
             historyManager.remove(epicId);
-        }// добавил цикл для удаления истории во всех removeAll
+        } // добавил цикл для удаления истории во всех removeAll
         for (Integer subtaskId : subtasks.keySet()) {
             historyManager.remove(subtaskId);
         }
