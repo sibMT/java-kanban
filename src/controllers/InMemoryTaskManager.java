@@ -122,7 +122,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeAllSubtasks() {
         for (Integer subtaskId : subtasks.keySet()) {
             historyManager.remove(subtaskId);
-        }
+        } // комментария для коммита
         for (Epic epic : epics.values()) {
             epic.clearSubtasks();
             updateEpicStatus(epic);
