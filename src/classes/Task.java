@@ -2,6 +2,8 @@ package classes;
 
 import java.util.Objects;
 
+import static jdk.internal.org.jline.utils.Colors.s;
+
 public class Task {
     private int id;
     private String taskName;
@@ -76,5 +78,9 @@ public class Task {
 
     public void setTaskStatus(TaskStatus taskStatus) {
         this.taskStatus = taskStatus;
+    }
+
+    public String serialize() {
+        return String.format("%s,%s,%s,%s,%s\n", id, TaskType.TASK, taskName, taskStatus, description);
     }
 }

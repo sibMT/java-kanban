@@ -33,4 +33,10 @@ public class Subtask extends Task {
     public void setEpicId(Integer epicId) {
         this.epicId = epicId;
     }
+
+    @Override
+    public String serialize() {
+        return String.format("%s,%s,%s,%s,%s,%s\n", getId(), TaskType.SUBTASK, getTaskName(), getTaskStatus(),
+                getDescription(), getEpicId());
+    }
 }
