@@ -29,4 +29,10 @@ public class Epic extends Task {
     public void clearSubtasks() {
         subtasks.clear();
     }
+
+    @Override
+    public String serialize() {
+        return String.format("%s,%s,%s,%s,%s,%s\n", getId(), TaskType.EPIC, getTaskName(), getTaskStatus(),
+                getDescription(), subtasks);
+    }
 }

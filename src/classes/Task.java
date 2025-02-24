@@ -2,6 +2,7 @@ package classes;
 
 import java.util.Objects;
 
+
 public class Task {
     private int id;
     private String taskName;
@@ -76,5 +77,9 @@ public class Task {
 
     public void setTaskStatus(TaskStatus taskStatus) {
         this.taskStatus = taskStatus;
+    }
+
+    public String serialize() {
+        return String.format("%s,%s,%s,%s,%s\n", id, TaskType.TASK, taskName, taskStatus, description);
     }
 }
