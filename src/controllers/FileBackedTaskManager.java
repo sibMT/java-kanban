@@ -24,7 +24,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.file = file;
     }
 
-    public void save() throws FileManagerSaveException {
+    public void save() {
         final String title = "id,type,name,status,description,epic\n";
         List<String> lines = new ArrayList<>();
         lines.add(title);
@@ -37,159 +37,94 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     public void load() {
-        List<String> lines = null;
         try {
-            lines = loadFromFile(file);
+            FileBackedTaskManager loadedManager = loadFromFile(file);
+            this.tasks = loadedManager.tasks;
+            this.epics = loadedManager.epics;
+            this.subtasks = loadedManager.subtasks;
         } catch (FileManagerSaveException e) {
             throw new RuntimeException("Ошибка при загрузке данных из файла", e);
-        }
-        if (lines != null && !lines.isEmpty()) {
-            lines.removeFirst();
-        }
-        for (String line : lines) {
-            fromString(line);
         }
     }
 
     @Override
     public Task createTask(Task task) {
         super.createTask(task);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return task;
     }
 
     @Override
     public Task updateTask(Task task) {
-        Task updatedTask = super.updateTask(task);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
-
-        return updatedTask;
+        super.updateTask(task);
+        save();
+        return task;
     }
 
     @Override
     public Task removeTaskById(Integer id) {
         super.removeTaskById(id);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return tasks.remove(id);
     }
 
     @Override
     public void removeAllTasks() {
         super.removeAllTasks();
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public Epic createEpic(Epic epic) {
         super.createEpic(epic);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return epic;
     }
 
     @Override
     public void updateEpic(Epic epic) {
         super.updateEpic(epic);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void removeEpicById(Integer id) {
         super.removeEpicById(id);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void removeAllEpics() {
         super.removeAllEpics();
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public Subtask createSubtasks(Subtask subTask) {
         super.createSubtasks(subTask);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return subTask;
     }
 
     @Override
     public void updateSubtask(Subtask subTask) {
         super.updateSubtask(subTask);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void removeSubtaskById(Integer id) {
         super.removeSubtaskById(id);
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     @Override
     public void removeAllSubtasks() {
         super.removeAllSubtasks();
-
-        try {
-            save();
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
-    protected void saveToFile(List<String> lines) throws FileManagerSaveException {
+    private void saveToFile(List<String> lines) {
         if (file == null) {
             throw new FileManagerSaveException("Невозможно сохранить данные в файл.");
         }
@@ -209,11 +144,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    private List<String> loadFromFile(File file) throws FileManagerSaveException {
+    private static FileBackedTaskManager loadFromFile(File file) {
         if (file == null) {
             throw new FileManagerSaveException("Невозможно загрузить данные из файла.");
         }
-
+        FileBackedTaskManager manager = new FileBackedTaskManager(file);
         List<String> lines = new ArrayList<>();
 
         try (FileReader fileReader = new FileReader(file);
@@ -226,8 +161,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } catch (IOException e) {
             throw new FileManagerSaveException(e.getMessage());
         }
+        for (String task : lines) {
+            manager.fromString(task);
+        }
 
-        return lines;
+        return manager;
     }
 
     private void handleTask(String[] lines) {
