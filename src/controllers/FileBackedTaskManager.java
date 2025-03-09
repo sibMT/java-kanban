@@ -8,6 +8,9 @@ import exception.FileManagerSaveException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -169,32 +172,51 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private void handleTask(String[] lines) {
+        LocalDateTime startTime = "null".equals(lines[6])
+                ? null
+                : LocalDateTime.parse(lines[6], DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"));
+
         super.createTask(new Task(
                 Integer.parseInt(lines[0]),
                 lines[2],
                 lines[4],
-                getTaskStatusFromString(lines[3])
+                getTaskStatusFromString(lines[3]),
+                Duration.ofMinutes(Long.parseLong(lines[5])),
+                startTime
         ));
     }
 
     private void handleEpic(String[] lines) {
+        LocalDateTime startTime = "null".equals(lines[6])
+                ? null
+                : LocalDateTime.parse(lines[6], DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"));
+
         super.createEpic(new Epic(
                 Integer.parseInt(lines[0]),
                 lines[2],
                 lines[4],
-                getTaskStatusFromString(lines[3])
+                getTaskStatusFromString(lines[3]),
+                Duration.ofMinutes(Long.parseLong(lines[5])),
+                startTime
         ));
     }
 
     private void handleSubtask(String[] lines) {
         int subtaskId = Integer.parseInt(lines[0]);
         int epicId = Integer.parseInt(lines[lines.length - 1]);
+
+        LocalDateTime startTime = "null".equals(lines[6])
+                ? null
+                : LocalDateTime.parse(lines[6], DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"));
+
         super.createSubtasks(new Subtask(
                 subtaskId,
                 epicId,
                 lines[2],
                 lines[4],
-                getTaskStatusFromString(lines[3])
+                getTaskStatusFromString(lines[3]),
+                Duration.ofMinutes(Long.parseLong(lines[5])),
+                startTime
         ));
     }
 
@@ -216,4 +238,5 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             default -> throw new IllegalStateException("Неизвестное значение: " + line);
         };
     }
+
 }
