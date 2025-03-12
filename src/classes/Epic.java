@@ -40,10 +40,17 @@ public class Epic extends Task {
 
     @Override
     public String serialize() {
-        return String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s\n", getId(), TaskType.EPIC, getTaskName(), getTaskStatus(),
-                getDescription(), getDuration().toMinutes(), (getStartTime() != null ? getStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"))
-                        : "null"), (getEndTime() != null
-                        ? getEndTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy")) : "null"), subtasks);
+        long durationMinutes = (getDuration() != null) ? getDuration().toMinutes() : 0;
+        return String.format("%s,%s,%s,%s,%s,%d,%s,%s,%s\n",
+                getId(),
+                TaskType.EPIC,
+                getTaskName(),
+                getTaskStatus(),
+                getDescription(),
+                durationMinutes,
+                (getStartTime() != null ? getStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy")) : "null"),
+                (getEndTime() != null ? getEndTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy")) : "null"),
+                subtasks);
     }
 
     @Override
@@ -53,7 +60,7 @@ public class Epic extends Task {
                 ", name=" + getTaskName() +
                 ", subTasksIdList=" + subtasks +
                 ", status=" + getTaskStatus() +
-                ", duration=" + getDuration().toMinutes() +
+                ", duration=" + (getDuration() != null ? getDuration().toMinutes() : "null") + // Проверка на null
                 ", startTime=" + (getStartTime() != null
                 ? getStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"))
                 : "null") +

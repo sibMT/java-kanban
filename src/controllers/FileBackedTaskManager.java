@@ -39,17 +39,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         saveToFile(lines);
     }
 
-    public void load() {
-        try {
-            FileBackedTaskManager loadedManager = loadFromFile(file);
-            this.tasks = loadedManager.tasks;
-            this.epics = loadedManager.epics;
-            this.subtasks = loadedManager.subtasks;
-        } catch (FileManagerSaveException e) {
-            throw new RuntimeException("Ошибка при загрузке данных из файла", e);
-        }
-    }
-
     @Override
     public Task createTask(Task task) {
         super.createTask(task);
@@ -147,41 +136,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    private static FileBackedTaskManager loadFromFile(File file) {
-        if (file == null) {
-            throw new FileManagerSaveException("Невозможно загрузить данные из файла.");
-        }
-        FileBackedTaskManager manager = new FileBackedTaskManager(file);
-        List<String> lines = new ArrayList<>();
-
-        try (FileReader fileReader = new FileReader(file);
-             BufferedReader bufferedReader = new BufferedReader(fileReader)) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                lines.add(line);
-            }
-
-        } catch (IOException e) {
-            throw new FileManagerSaveException(e.getMessage());
-        }
-        for (String task : lines) {
-            manager.fromString(task);
-        }
-
-        return manager;
-    }
-
     private void handleTask(String[] lines) {
         LocalDateTime startTime = "null".equals(lines[6])
                 ? null
                 : LocalDateTime.parse(lines[6], DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"));
-
+        Duration duration = "null".equals(lines[5])
+                ? Duration.ZERO
+                : Duration.ofMinutes(Long.parseLong(lines[5]));
         super.createTask(new Task(
                 Integer.parseInt(lines[0]),
                 lines[2],
                 lines[4],
                 getTaskStatusFromString(lines[3]),
-                Duration.ofMinutes(Long.parseLong(lines[5])),
+                duration,
                 startTime
         ));
     }
@@ -190,13 +157,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         LocalDateTime startTime = "null".equals(lines[6])
                 ? null
                 : LocalDateTime.parse(lines[6], DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"));
-
+        Duration duration = "null".equals(lines[5])
+                ? Duration.ZERO
+                : Duration.ofMinutes(Long.parseLong(lines[5]));
         super.createEpic(new Epic(
                 Integer.parseInt(lines[0]),
                 lines[2],
                 lines[4],
                 getTaskStatusFromString(lines[3]),
-                Duration.ofMinutes(Long.parseLong(lines[5])),
+                duration,
                 startTime
         ));
     }
@@ -208,25 +177,28 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         LocalDateTime startTime = "null".equals(lines[6])
                 ? null
                 : LocalDateTime.parse(lines[6], DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"));
-
+        Duration duration = "null".equals(lines[5])
+                ? Duration.ZERO
+                : Duration.ofMinutes(Long.parseLong(lines[5]));
         super.createSubtasks(new Subtask(
                 subtaskId,
                 epicId,
                 lines[2],
                 lines[4],
                 getTaskStatusFromString(lines[3]),
-                Duration.ofMinutes(Long.parseLong(lines[5])),
+                duration,
                 startTime
         ));
     }
 
-    private void fromString(String line) {
+    protected void fromString(String line) {
         String[] lines = line.trim().split(",");
 
         switch (lines[1]) {
             case "TASK" -> handleTask(lines);
             case "EPIC" -> handleEpic(lines);
             case "SUBTASK" -> handleSubtask(lines);
+            default -> throw new IllegalStateException("Неизвестный тип задачи: " + lines[1]);
         }
     }
 

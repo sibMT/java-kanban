@@ -1,6 +1,13 @@
 package controllers;
 
+import exception.FileManagerSaveException;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Managers {
 
@@ -17,9 +24,26 @@ public class Managers {
         return new FileBackedTaskManager(file);
     }
 
+
     public static FileBackedTaskManager loadFromFile(File file) {
-        FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager(file);
-        fileBackedTaskManager.load();
-        return fileBackedTaskManager;
+        if (file == null) {
+            throw new FileManagerSaveException("Невозможно загрузить данные из файла.");
+        }
+
+        FileBackedTaskManager manager = new FileBackedTaskManager(file, new InMemoryHistoryManager());
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+            String line;
+            boolean isFirstLine = true;
+            while ((line = bufferedReader.readLine()) != null) {
+                if (isFirstLine) {
+                    isFirstLine = false;
+                    continue;
+                }
+                manager.fromString(line);
+            }
+        } catch (IOException e) {
+            throw new FileManagerSaveException(e.getMessage());
+        }
+        return manager;
     }
 }
