@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 class EpicTest {
@@ -14,10 +18,16 @@ class EpicTest {
 
     @BeforeEach
     public void init() {
-        epic1 = new Epic(1, "Ужин", "Приготовить ужин", TaskStatus.NEW);
+        epic1 = new Epic(1, "Ужин", "Приготовить ужин", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(2, 10)));
         epic2 = new Epic("Потренероваться", "Сходить в зал");
-        subtask1 = new Subtask(1, 1, "Готовка", "Стирка", TaskStatus.NEW);
-        subtask2 = new Subtask(2, 1, "Сделать уроки", "Отдохнуть", TaskStatus.NEW);
+        subtask1 = new Subtask(1, 1, "Готовка", "Стирка", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(3, 10)));
+        subtask2 = new Subtask(2, 1, "Сделать уроки", "Отдохнуть", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(4, 10)));
     }
 
 
