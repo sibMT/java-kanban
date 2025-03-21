@@ -6,7 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
-import DataTransferObject.SubtaskDTO;
+import dto.SubtaskDTO;
 import exception.FileManagerSaveException;
 import controllers.TaskManager;
 import classes.Epic;

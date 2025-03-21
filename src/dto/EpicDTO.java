@@ -1,4 +1,4 @@
-package DataTransferObject;
+package dto;
 
 public record EpicDTO(
         String taskName,

@@ -1,23 +1,17 @@
-package DataTransferObject;
+package dto;
 
 import classes.TaskStatus;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-public record SubtaskDTO(
-        int epicId,
+public record TaskDTO(
         String taskName,
         String description,
         TaskStatus taskStatus,
         Duration duration,
         LocalDateTime startTime
 ) {
-    @Override
-    public int epicId() {
-        return epicId;
-    }
-
     @Override
     public String taskName() {
         return taskName;
