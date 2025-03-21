@@ -14,6 +14,7 @@ public class Task {
     private Duration duration;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private TaskStatus status;
 
     public Task(String taskName, String description, TaskStatus taskStatus, Duration duration, LocalDateTime startTime) {
         this.taskName = taskName;
@@ -124,9 +125,9 @@ public class Task {
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
-//        Думал, что этот метод как раз вручную устанавливается, как раз во всех применениях вбивать параметры вручную
-//        смотрится органично.
-//        Получается данный метод вообще можно удалить, а также поле endTime из класса и после этого вычислять
-//        endTime автоматически на основе startTime?
+    }
+
+    public TaskStatus getStatus() {
+        return status;
     }
 }

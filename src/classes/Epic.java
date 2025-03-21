@@ -22,6 +22,10 @@ public class Epic extends Task {
         super(taskName, description, TaskStatus.NEW, taskDuration, startTime);
     }
 
+    public Epic(int id, String taskName, String description) {
+        super(id, taskName, description, TaskStatus.NEW, Duration.ofMinutes(0), LocalDateTime.now());
+    }
+
     public void createSubtaskId(Subtask subtask) {
         subtasks.add(subtask.getId());
     }
