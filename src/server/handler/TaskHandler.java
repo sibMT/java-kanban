@@ -1,9 +1,6 @@
 package server.handler;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import dto.TaskDTO;
 import controllers.TaskManager;
@@ -25,8 +22,8 @@ public class TaskHandler extends BaseHttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        System.out.println("Получен запрос: " + exchange.getRequestMethod() + " " + exchange.getRequestURI().getPath());
         try {
+            System.out.println("Получен запрос: " + exchange.getRequestMethod() + " " + exchange.getRequestURI().getPath());
             HttpMethod httpMethod = HttpMethod.valueOf(exchange.getRequestMethod());
             String[] path = exchange.getRequestURI().getPath().split("/");
 
@@ -70,58 +67,56 @@ public class TaskHandler extends BaseHttpHandler {
             } else {
                 sendResponse(exchange, convertToMessage("Задача с id=" + id + " не найдена"), HttpURLConnection.HTTP_NOT_FOUND);
             }
-
         } else {
-            sendResponse(exchange, convertToMessage("Не верно указан id"), HttpURLConnection.HTTP_BAD_REQUEST);
+            sendResponse(exchange, convertToMessage("Неверно указан id"), HttpURLConnection.HTTP_BAD_REQUEST);
         }
     }
 
     private void addTask(HttpExchange exchange) throws IOException {
-        if (checkHeader(exchange)) {
-            InputStream inputStream = exchange.getRequestBody();
-            TaskDTO taskDTO = parseTask(inputStream);
+        if (!checkHeader(exchange)) {
+            sendResponse(exchange, convertToMessage("Неправильный формат запроса"), HttpURLConnection.HTTP_BAD_REQUEST);
+            return;
+        }
 
-            Integer id = getId(exchange);
+        InputStream inputStream = exchange.getRequestBody();
+        TaskDTO taskDTO = parseTask(inputStream);
 
-            if (id == null) {
-                if (taskDTO != null) {
-                    Task task = convertToTask(taskDTO);
+        if (taskDTO != null && isValidTaskDTO(taskDTO)) {
+            Task task = convertToTask(taskDTO);
 
-                    try {
-                        taskManager.createTask(task);
-                        sendResponse(exchange, convertToMessage("Задача добавлена"), HttpURLConnection.HTTP_CREATED);
-                    } catch (FileManagerSaveException e) {
-                        sendResponse(exchange, convertToMessage(e.getMessage()), HttpURLConnection.HTTP_NOT_ACCEPTABLE);
-                    }
-                }
+            try {
+                taskManager.createTask(task);
+                sendResponse(exchange, convertToMessage("Задача добавлена"), HttpURLConnection.HTTP_CREATED);
+            } catch (FileManagerSaveException e) {
+                sendResponse(exchange, convertToMessage(e.getMessage()), HttpURLConnection.HTTP_NOT_ACCEPTABLE);
             }
         } else {
-            sendResponse(exchange, convertToMessage("Неправильный формат запроса"), HttpURLConnection.HTTP_BAD_REQUEST);
+            sendResponse(exchange, convertToMessage("Неправильный формат задачи"), HttpURLConnection.HTTP_BAD_REQUEST);
         }
     }
 
     private void updateTask(HttpExchange exchange) throws IOException {
-        if (checkHeader(exchange)) {
-            InputStream inputStream = exchange.getRequestBody();
-            TaskDTO taskDTO = parseTask(inputStream);
-
-            Integer id = getId(exchange);
-
-            if (id != null) {
-                Task task = taskManager.getTaskById(id);
-
-                if (task != null && taskDTO != null) {
-                    taskManager.updateTask(convertToTask(taskDTO, id));
-                    sendResponse(exchange, convertToMessage("Задача обновлена"), HttpURLConnection.HTTP_CREATED);
-                } else {
-                    sendResponse(exchange, convertToMessage("Задача с id=" + id + " не найдена"), HttpURLConnection.HTTP_NOT_FOUND);
-                }
-            } else {
-                sendResponse(exchange, convertToMessage("Не верно указан id"), HttpURLConnection.HTTP_BAD_REQUEST);
-            }
-
-        } else {
+        if (!checkHeader(exchange)) {
             sendResponse(exchange, convertToMessage("Неправильный формат запроса"), HttpURLConnection.HTTP_BAD_REQUEST);
+            return;
+        }
+
+        InputStream inputStream = exchange.getRequestBody();
+        TaskDTO taskDTO = parseTask(inputStream);
+
+        Integer id = getId(exchange);
+
+        if (id != null && taskDTO != null && isValidTaskDTO(taskDTO)) {
+            Task task = taskManager.getTaskById(id);
+
+            if (task != null) {
+                taskManager.updateTask(convertToTask(taskDTO, id));
+                sendResponse(exchange, convertToMessage("Задача обновлена"), HttpURLConnection.HTTP_CREATED);
+            } else {
+                sendResponse(exchange, convertToMessage("Задача с id=" + id + " не найдена"), HttpURLConnection.HTTP_NOT_FOUND);
+            }
+        } else {
+            sendResponse(exchange, convertToMessage("Неверно указан id или тело запроса"), HttpURLConnection.HTTP_BAD_REQUEST);
         }
     }
 
@@ -137,17 +132,24 @@ public class TaskHandler extends BaseHttpHandler {
             } else {
                 sendResponse(exchange, convertToMessage("Задача с id=" + id + " не найдена"), HttpURLConnection.HTTP_NOT_FOUND);
             }
-
         } else {
-            sendResponse(exchange, convertToMessage("Не верно указан id"), HttpURLConnection.HTTP_BAD_REQUEST);
+            sendResponse(exchange, convertToMessage("Неверно указан id"), HttpURLConnection.HTTP_BAD_REQUEST);
         }
     }
 
     private TaskDTO parseTask(InputStream inputStream) throws IOException {
         String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        JsonElement jsonElement = JsonParser.parseString(body);
-        JsonObject jsonObject = jsonElement.getAsJsonObject();
-        return gson.fromJson(jsonObject, TaskDTO.class);
+        if (body == null || body.isEmpty()) {
+            throw new IOException("Тело запроса пустое");
+        }
+
+        try {
+            JsonElement jsonElement = JsonParser.parseString(body);
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
+            return gson.fromJson(jsonObject, TaskDTO.class);
+        } catch (JsonSyntaxException | IllegalStateException e) {
+            throw new IOException("Неправильный формат JSON", e);
+        }
     }
 
     private Task convertToTask(TaskDTO taskDTO) {
@@ -170,4 +172,19 @@ public class TaskHandler extends BaseHttpHandler {
                 taskDTO.startTime()
         );
     }
+
+    private boolean isValidTaskDTO(TaskDTO taskDTO) {
+        return taskDTO.taskName() != null && !taskDTO.taskName().isEmpty()
+                && taskDTO.description() != null && !taskDTO.description().isEmpty()
+                && taskDTO.taskStatus() != null
+                && taskDTO.duration() != null
+                && taskDTO.startTime() != null;
+    }
+
+    protected boolean checkHeader(HttpExchange exchange) {
+        String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+        return contentType != null && contentType.equalsIgnoreCase("application/json");
+    }
 }
+
+
