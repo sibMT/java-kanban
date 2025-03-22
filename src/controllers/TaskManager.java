@@ -43,9 +43,11 @@ public interface TaskManager {
 
     Task getTaskById(Integer id);
 
-    List<Task> getHistory();
-
     Subtask getSubtaskById(Integer id);
 
+    List<Task> getHistory();
+
     Set<Task> getPrioritizedTasks();
+
+    List<Subtask> getSubtasksByEpicId(Integer epicId);
 }

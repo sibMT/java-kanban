@@ -25,26 +25,32 @@ public class TaskHandler extends BaseHttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        HttpMethod httpMethod = HttpMethod.valueOf(exchange.getRequestMethod());
+        System.out.println("Получен запрос: " + exchange.getRequestMethod() + " " + exchange.getRequestURI().getPath());
+        try {
+            HttpMethod httpMethod = HttpMethod.valueOf(exchange.getRequestMethod());
+            String[] path = exchange.getRequestURI().getPath().split("/");
 
-        String[] path = exchange.getRequestURI().getPath().split("/");
-
-        switch (httpMethod) {
-            case GET -> {
-                if (path.length == 3) {
-                    getTaskById(exchange);
-                } else {
-                    getAllTasks(exchange);
+            switch (httpMethod) {
+                case GET -> {
+                    if (path.length == 3) {
+                        getTaskById(exchange);
+                    } else {
+                        getAllTasks(exchange);
+                    }
                 }
-            }
-            case POST -> {
-                if (path.length == 3) {
-                    updateTask(exchange);
-                } else {
-                    addTask(exchange);
+                case POST -> {
+                    if (path.length == 3) {
+                        updateTask(exchange);
+                    } else {
+                        addTask(exchange);
+                    }
                 }
+                case DELETE -> deleteTaskById(exchange);
+                default -> sendResponse(exchange, convertToMessage("Метод не поддерживается"), HttpURLConnection.HTTP_BAD_METHOD);
             }
-            case DELETE -> deleteTaskById(exchange);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendResponse(exchange, convertToMessage("Внутренняя ошибка сервера"), HttpURLConnection.HTTP_INTERNAL_ERROR);
         }
     }
 

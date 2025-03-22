@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class InMemoryTaskManager implements TaskManager {
@@ -136,10 +137,11 @@ public class InMemoryTaskManager implements TaskManager {
         for (Integer subtaskId : subtasks.keySet()) {
             historyManager.remove(subtaskId);
         }
-        epics.values().forEach(prioritizedTasks::remove);
+        epics.values().stream()
+                .filter(Objects::nonNull)
+                .forEach(prioritizedTasks::remove);
         epics.clear();
         subtasks.clear();
-
     }
 
     @Override
@@ -277,7 +279,6 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             epic.setDuration(null);
         }
-
     }
 
     private LocalDateTime getMaxDateTime(Epic epic) {
@@ -328,6 +329,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     private boolean timeOver(LocalDateTime start1, LocalDateTime end1, LocalDateTime start2, LocalDateTime end2) {
         return start1.isBefore(end2) && end1.isAfter(start2);
+    }
+
+    @Override
+    public List<Subtask> getSubtasksByEpicId(Integer epicId) {
+        return subtasks.values().stream()
+                .filter(subtask -> subtask.getEpicId().equals(epicId))
+                .collect(Collectors.toList());
     }
 
 }

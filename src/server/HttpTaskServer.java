@@ -18,15 +18,14 @@ public class HttpTaskServer {
     private final int port;
     private final String hostname;
     private final HttpServer httpServer;
-    private static final int PORT = 8080;
+    private static final int PORT = 8081;
     private static final String HOST = "localhost";
 
     public HttpTaskServer(int port, String hostname, TaskManager taskManager) throws IOException {
         this.port = port;
         this.hostname = hostname;
 
-        httpServer = HttpServer.create();
-        httpServer.bind(new InetSocketAddress(hostname, port), 0);
+        httpServer = HttpServer.create(new InetSocketAddress(hostname, port), 0);
 
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
@@ -42,14 +41,21 @@ public class HttpTaskServer {
     public void start() {
         System.out.printf("Сервер доступен по адресу http://%s:%d\n", hostname, port);
         httpServer.start();
+        System.out.println("Сервер успешно запущен.");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void stop(int delay) {
         httpServer.stop(delay);
+        System.out.println("Сервер остановлен");
     }
 
     public static void main(String[] args) throws IOException {
-        HttpTaskServer httpTaskServer = new HttpTaskServer(PORT,HOST, Managers.getDefault());
+        HttpTaskServer httpTaskServer = new HttpTaskServer(PORT, HOST, Managers.getDefault());
         httpTaskServer.start();
     }
 }
