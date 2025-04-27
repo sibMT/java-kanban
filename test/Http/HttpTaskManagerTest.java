@@ -14,6 +14,7 @@ import controllers.InMemoryHistoryManager;
 import controllers.InMemoryTaskManager;
 import controllers.TaskManager;
 import server.HttpTaskServer;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.*;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,7 +54,7 @@ public class HttpTaskManagerTest {
                 .create();
         taskServer.start();
         resetManager();
-    } 
+    }
 
     @AfterAll
     public static void tearDown() {
@@ -313,6 +315,7 @@ public class HttpTaskManagerTest {
         assertEquals(expectedStatusCode, actuallyStatusCode, "Статус код должен быть 200");
         assertEquals(expectedBody, actuallyBody, "Ответ не совпадает с ожидаемым");
     }
+
     @Test
     public void testUpdateEpic() throws IOException, InterruptedException {
         Epic originalEpic = new Epic(
@@ -348,7 +351,7 @@ public class HttpTaskManagerTest {
         assertEquals("Updated Epic", actualEpic.getTaskName(), "Имя не обновилось");
         assertEquals("Updated epic description", actualEpic.getDescription(), "Описание не обновилось");
         assertEquals(LocalDateTime.of(LocalDate.of(2025, 3, 2), LocalTime.of(10, 0)),
-                actualEpic.getStartTime(),"Время начала не обновилось");
+                actualEpic.getStartTime(), "Время начала не обновилось");
     }
 
 
@@ -491,10 +494,10 @@ public class HttpTaskManagerTest {
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertEquals(200,response.statusCode(),"Неверный статус код при обновлении");
+        assertEquals(200, response.statusCode(), "Неверный статус код при обновлении");
         Subtask realSubtask = manager.getSubtaskById(subtask.getId());
-        assertNotNull(realSubtask,"Подзадача не найдена после обновления");
-        assertEquals("Subtask1 updated",realSubtask.getTaskName(),"Имя не обновилось");
+        assertNotNull(realSubtask, "Подзадача не найдена после обновления");
+        assertEquals("Subtask1 updated", realSubtask.getTaskName(), "Имя не обновилось");
         assertEquals("Updated description", realSubtask.getDescription(), "Описание не обновилось");
         assertEquals(TaskStatus.IN_PROGRESS, realSubtask.getTaskStatus(), "Статус не обновился");
         assertEquals(Duration.ofMinutes(10), realSubtask.getDuration(), "Длительность не обновилась");
@@ -620,84 +623,86 @@ public class HttpTaskManagerTest {
     }
 
     @Test
-    public void testGetHistory() throws IOException,InterruptedException {
-            Task task = new Task("Test Task", "Description", TaskStatus.NEW);
-            manager.createTask(task);
+    public void testGetHistory() throws IOException, InterruptedException {
+        Task task = new Task("Test Task", "Description", TaskStatus.NEW);
+        manager.createTask(task);
 
-            Epic epic = new Epic("Test Epic", "Epic Description");
-            manager.createEpic(epic);
+        Epic epic = new Epic("Test Epic", "Epic Description");
+        manager.createEpic(epic);
 
-            Subtask subtask = new Subtask(epic.getId(),
-                    "Test Subtask",
-                    "Subtask Description",
-                    TaskStatus.NEW,
-                    Duration.ofMinutes(30),
-                    LocalDateTime.now());
-            manager.createSubtasks(subtask);
-            manager.getTaskById(task.getId());
-            manager.getEpicById(epic.getId());
-            manager.getSubtaskById(subtask.getId());
+        Subtask subtask = new Subtask(epic.getId(),
+                "Test Subtask",
+                "Subtask Description",
+                TaskStatus.NEW,
+                Duration.ofMinutes(30),
+                LocalDateTime.now());
+        manager.createSubtasks(subtask);
+        manager.getTaskById(task.getId());
+        manager.getEpicById(epic.getId());
+        manager.getSubtaskById(subtask.getId());
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://" + HOSTNAME + ":" + PORT + "/history"))
-                    .GET()
-                    .build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://" + HOSTNAME + ":" + PORT + "/history"))
+                .GET()
+                .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            assertEquals(200, response.statusCode(), "Неверный статус код");
+        assertEquals(200, response.statusCode(), "Неверный статус код");
 
-            List<Task> history = gson.fromJson(response.body(), new TypeToken<List<Task>>(){}.getType());
-            assertNotNull(history, "История не должна быть null");
-            assertEquals(3, history.size(), "Неверное количество задач в истории");
-            assertEquals(subtask.getId(), history.get(0).getId(), "Подзадача должна быть первой в истории");
-            assertEquals(epic.getId(), history.get(1).getId(), "Эпик должен быть вторым в истории");
-            assertEquals(task.getId(), history.get(2).getId(), "Задача должна быть третьей в истории");
+        List<Task> history = gson.fromJson(response.body(), new TypeToken<List<Task>>() {
+        }.getType());
+        assertNotNull(history, "История не должна быть null");
+        assertEquals(3, history.size(), "Неверное количество задач в истории");
+        assertEquals(subtask.getId(), history.get(0).getId(), "Подзадача должна быть первой в истории");
+        assertEquals(epic.getId(), history.get(1).getId(), "Эпик должен быть вторым в истории");
+        assertEquals(task.getId(), history.get(2).getId(), "Задача должна быть третьей в истории");
     }
 
     @Test
-    public void testGetPrioritizedTasks() throws IOException,InterruptedException {
-            Task earlyTask = new Task("Early", "Desc", TaskStatus.NEW,
-                    Duration.ofMinutes(30),
-                    LocalDateTime.of(2023, 1, 1, 9, 0)); // 09:00
+    public void testGetPrioritizedTasks() throws IOException, InterruptedException {
+        Task earlyTask = new Task("Early", "Desc", TaskStatus.NEW,
+                Duration.ofMinutes(30),
+                LocalDateTime.of(2023, 1, 1, 9, 0)); // 09:00
 
-            Task lateTask = new Task("Late", "Desc", TaskStatus.NEW,
-                    Duration.ofMinutes(30),
-                    LocalDateTime.of(2023, 1, 1, 11, 0)); // 11:00
+        Task lateTask = new Task("Late", "Desc", TaskStatus.NEW,
+                Duration.ofMinutes(30),
+                LocalDateTime.of(2023, 1, 1, 11, 0)); // 11:00
 
-            manager.createTask(earlyTask);
-            manager.createTask(lateTask);
+        manager.createTask(earlyTask);
+        manager.createTask(lateTask);
 
-            Epic epic = new Epic("Epic", "Desc");
-            manager.createEpic(epic);
+        Epic epic = new Epic("Epic", "Desc");
+        manager.createEpic(epic);
 
-            Subtask earliestSubtask = new Subtask(epic.getId(), "Earliest", "Desc",
-                    TaskStatus.NEW,
-                    Duration.ofMinutes(15),
-                    LocalDateTime.of(2023, 1, 1, 8, 0)); // 08:00
-            manager.createSubtasks(earliestSubtask);
+        Subtask earliestSubtask = new Subtask(epic.getId(), "Earliest", "Desc",
+                TaskStatus.NEW,
+                Duration.ofMinutes(15),
+                LocalDateTime.of(2023, 1, 1, 8, 0)); // 08:00
+        manager.createSubtasks(earliestSubtask);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://" + HOSTNAME + ":" + PORT + "/prioritized"))
-                    .GET()
-                    .build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://" + HOSTNAME + ":" + PORT + "/prioritized"))
+                .GET()
+                .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            assertEquals(200, response.statusCode());
+        assertEquals(200, response.statusCode());
 
-            Set<Task> prioritized = gson.fromJson(response.body(), new TypeToken<Set<Task>>(){}.getType());
+        Set<Task> prioritized = gson.fromJson(response.body(), new TypeToken<Set<Task>>() {
+        }.getType());
 
-            assertEquals(3, prioritized.size(), "Должны быть 3 задачи (2 задачи + 1 подзадача)");
-            List<Task> orderedTasks = new ArrayList<>(prioritized);
-            assertEquals(earliestSubtask.getId(), orderedTasks.get(0).getId(), "Подзадача должна быть первой");
-            assertEquals(earlyTask.getId(), orderedTasks.get(1).getId(), "Ранняя задача должна быть второй");
-            assertEquals(lateTask.getId(), orderedTasks.get(2).getId(), "Поздняя задача должна быть третьей");
-            assertTrue(prioritized.stream().anyMatch(t -> t.getId() == earliestSubtask.getId()));
-            assertTrue(prioritized.stream().anyMatch(t -> t.getId() == earlyTask.getId()));
-            assertTrue(prioritized.stream().anyMatch(t -> t.getId() == lateTask.getId()));
-            assertFalse(prioritized.stream().anyMatch(t -> t.getId() == epic.getId()),
-                    "Эпик без времени не должен включаться");
-        }
+        assertEquals(3, prioritized.size(), "Должны быть 3 задачи (2 задачи + 1 подзадача)");
+        List<Task> orderedTasks = new ArrayList<>(prioritized);
+        assertEquals(earliestSubtask.getId(), orderedTasks.get(0).getId(), "Подзадача должна быть первой");
+        assertEquals(earlyTask.getId(), orderedTasks.get(1).getId(), "Ранняя задача должна быть второй");
+        assertEquals(lateTask.getId(), orderedTasks.get(2).getId(), "Поздняя задача должна быть третьей");
+        assertTrue(prioritized.stream().anyMatch(t -> t.getId() == earliestSubtask.getId()));
+        assertTrue(prioritized.stream().anyMatch(t -> t.getId() == earlyTask.getId()));
+        assertTrue(prioritized.stream().anyMatch(t -> t.getId() == lateTask.getId()));
+        assertFalse(prioritized.stream().anyMatch(t -> t.getId() == epic.getId()),
+                "Эпик без времени не должен включаться");
+    }
 
 }

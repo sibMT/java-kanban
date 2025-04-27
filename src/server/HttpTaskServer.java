@@ -10,6 +10,7 @@ import com.sun.net.httpserver.HttpServer;
 import controllers.Managers;
 import controllers.TaskManager;
 import server.handler.*;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
@@ -28,7 +29,7 @@ public class HttpTaskServer {
         this.port = port;
         this.hostname = hostname;
 
-        InetSocketAddress address = new InetSocketAddress(HOST,PORT);
+        InetSocketAddress address = new InetSocketAddress(HOST, PORT);
         httpServer = HttpServer.create(address, 0);
 
         Gson gson = new GsonBuilder()

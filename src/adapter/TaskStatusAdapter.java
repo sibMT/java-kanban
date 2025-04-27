@@ -2,6 +2,7 @@ package adapter;
 
 import classes.TaskStatus;
 import com.google.gson.*;
+
 import java.lang.reflect.Type;
 
 

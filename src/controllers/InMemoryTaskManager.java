@@ -5,6 +5,7 @@ import classes.Subtask;
 import classes.Task;
 import classes.TaskStatus;
 import exception.TaskNotFoundException;
+
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -182,7 +183,7 @@ public class InMemoryTaskManager implements TaskManager {
         historyManager.remove(taskToRemove.getId());
         System.out.println("Удалена задача ID: " + id + " [tasks: " + tasks.size() + ", prioritized: " +
                 prioritizedTasks.size() + "]");
-        }
+    }
 
     @Override
     public void removeEpicById(Integer id) {
@@ -217,7 +218,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task getTaskById(Integer id) {
         Task task = tasks.get(id);
-        if(task == null) {
+        if (task == null) {
             throw new TaskNotFoundException(id);
         }
         historyManager.addToHistory(task);

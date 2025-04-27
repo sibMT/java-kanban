@@ -86,7 +86,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void removeAllEpics() {
-        super. removeAllEpics();
+        super.removeAllEpics();
         save();
     }
 

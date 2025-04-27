@@ -37,23 +37,23 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void remove(int id) {
-            Node<Task> node = obtainedTask.get(id);
-            if (node != null) {
-                // Корректное обновление связей
-                if (node.prev != null) {
-                    node.prev.next = node.next;
-                } else {
-                    head = node.next;
-                }
-
-                if (node.next != null) {
-                    node.next.prev = node.prev;
-                } else {
-                    tail = node.prev;
-                }
-
-                obtainedTask.remove(id);
+        Node<Task> node = obtainedTask.get(id);
+        if (node != null) {
+            // Корректное обновление связей
+            if (node.prev != null) {
+                node.prev.next = node.next;
+            } else {
+                head = node.next;
             }
+
+            if (node.next != null) {
+                node.next.prev = node.prev;
+            } else {
+                tail = node.prev;
+            }
+
+            obtainedTask.remove(id);
+        }
     }
 
 
@@ -64,15 +64,15 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private void lastLink(Task task) {
-            Node<Task> newNode = new Node<>(null, head, task);
-            obtainedTask.put(task.getId(), newNode);
+        Node<Task> newNode = new Node<>(null, head, task);
+        obtainedTask.put(task.getId(), newNode);
 
-            if (head == null) {
-                tail = newNode;
-            } else {
-                head.prev = newNode;
-            }
-            head = newNode;
+        if (head == null) {
+            tail = newNode;
+        } else {
+            head.prev = newNode;
+        }
+        head = newNode;
     }
 
     private List<Task> getTasks() {
