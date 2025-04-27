@@ -1,16 +1,14 @@
 package server.handler;
 
 import com.google.gson.Gson;
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dto.MessageDTO;
 import controllers.TaskManager;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
 
 public abstract class BaseHttpHandler implements HttpHandler {
     protected TaskManager taskManager;
@@ -22,46 +20,48 @@ public abstract class BaseHttpHandler implements HttpHandler {
     }
 
 
-    protected void sendResponse(HttpExchange exchange, String text, int responseCode) throws IOException {
-        byte[] responseBytes = text.getBytes(StandardCharsets.UTF_8);
-        exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
-        exchange.sendResponseHeaders(responseCode, responseBytes.length);
+    protected void sendJsonResponse(HttpExchange exchange, Object responseData, int statusCode) throws IOException {
+        String response = gson.toJson(responseData);
+        byte[] responseBytes = response.getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+        exchange.sendResponseHeaders(statusCode, responseBytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(responseBytes);
         }
     }
 
-
-    protected void sendNotFound(HttpExchange exchange, String message) throws IOException {
-        String response = convertToMessage(message);
-        sendResponse(exchange, response, 404);
+    protected void sendErrorResponse(HttpExchange exchange, String errorMessage, int statusCode) throws IOException {
+        ErrorResponse error = new ErrorResponse(
+                errorMessage,
+                statusCode,
+                exchange.getRequestURI().getPath()
+        );
+        sendJsonResponse(exchange, error, statusCode);
     }
 
-
-    protected void sendHasInteractions(HttpExchange exchange, String message) throws IOException {
-        String response = convertToMessage(message);
-        sendResponse(exchange, response, 409);
+    protected void sendStatusResponse(HttpExchange exchange, String message, int statusCode) throws IOException {
+        StatusResponse response = new StatusResponse(message, statusCode);
+        sendJsonResponse(exchange, response, statusCode);
     }
 
-
-    protected Integer getId(HttpExchange exchange) {
-        String[] path = exchange.getRequestURI().getPath().split("/");
+    protected Integer extractId(HttpExchange exchange) {
+        String path = exchange.getRequestURI().getPath();
+        String[] parts = path.split("/");
         try {
-            return Integer.parseInt(path[2]);
-        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            return Integer.parseInt(parts[parts.length - 1]);
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             return null;
         }
     }
 
-
-    protected boolean checkHeader(HttpExchange exchange) {
-        Headers headers = exchange.getRequestHeaders();
-        List<String> contentTypeValues = headers.get("Content-Type");
-        return (contentTypeValues != null) && (contentTypeValues.contains("application/json"));
+    protected boolean isJsonContentType(HttpExchange exchange) {
+        List<String> contentType = exchange.getRequestHeaders().get("Content-Type");
+        return contentType != null &&
+                contentType.stream()
+                        .anyMatch(ct -> ct.equalsIgnoreCase("application/json"));
     }
 
+    protected record ErrorResponse(String message, int status, String path) {}
+    protected record StatusResponse(String message, int status) {}
 
-    protected String convertToMessage(String message) {
-        return gson.toJson(new MessageDTO(message));
-    }
 }

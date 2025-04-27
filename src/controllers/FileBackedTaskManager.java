@@ -54,10 +54,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public Task removeTaskById(Integer id) {
+    public void removeTaskById(Integer id) {
         super.removeTaskById(id);
         save();
-        return tasks.remove(id);
     }
 
     @Override
@@ -87,7 +86,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void removeAllEpics() {
-        super.removeAllEpics();
+        super. removeAllEpics();
         save();
     }
 

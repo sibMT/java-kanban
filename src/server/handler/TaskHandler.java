@@ -2,17 +2,15 @@ package server.handler;
 
 import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
-import dto.TaskDTO;
 import controllers.TaskManager;
 import classes.Task;
-import exception.FileManagerSaveException;
+import exception.*;
 import server.HttpMethod;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
 
 
 public class TaskHandler extends BaseHttpHandler {
@@ -28,162 +26,183 @@ public class TaskHandler extends BaseHttpHandler {
             String[] path = exchange.getRequestURI().getPath().split("/");
 
             switch (httpMethod) {
-                case GET -> {
-                    if (path.length == 3) {
-                        getTaskById(exchange);
-                    } else {
-                        getAllTasks(exchange);
-                    }
-                }
-                case POST -> {
-                    if (path.length == 3) {
-                        updateTask(exchange);
-                    } else {
-                        addTask(exchange);
-                    }
-                }
-                case DELETE -> deleteTaskById(exchange);
-                default -> sendResponse(exchange, convertToMessage("Метод не поддерживается"), HttpURLConnection.HTTP_BAD_METHOD);
+                case GET -> handleGetRequest(exchange, path);
+                case POST -> handlePostRequest(exchange, path);
+                case DELETE -> handleDeleteRequest(exchange);
+                default -> sendErrorResponse(exchange, "Метод не поддерживается", 405);
             }
+        } catch (TaskNotFoundException e) {
+            sendErrorResponse(exchange, e.getMessage(), 404);
+        } catch (ValidationException e) {
+            sendErrorResponse(exchange, e.getMessage(), 400);
         } catch (Exception e) {
-            e.printStackTrace();
-            sendResponse(exchange, convertToMessage("Внутренняя ошибка сервера"), HttpURLConnection.HTTP_INTERNAL_ERROR);
+            sendErrorResponse(exchange, "Внутренняя ошибка сервера", 500);
         }
+    }
+
+    private void handleGetRequest(HttpExchange exchange, String[] path) throws IOException {
+        if (path.length == 3) {
+            getTaskById(exchange);
+        } else {
+            getAllTasks(exchange);
+        }
+    }
+
+    private void handlePostRequest(HttpExchange exchange, String[] path) throws IOException {
+        if (path.length == 3) {
+            updateTask(exchange);
+        } else {
+            addTask(exchange);
+        }
+    }
+
+    private void handleDeleteRequest(HttpExchange exchange) throws IOException {
+        deleteTaskById(exchange);
     }
 
     private void getAllTasks(HttpExchange exchange) throws IOException {
         List<Task> tasks = taskManager.getAllTasks();
-        sendResponse(exchange, gson.toJson(tasks), HttpURLConnection.HTTP_OK);
+        sendJsonResponse(exchange, tasks, 200);
     }
 
     private void getTaskById(HttpExchange exchange) throws IOException {
-        Integer id = getId(exchange);
-
-        if (id != null) {
-            Task task = taskManager.getTaskById(id);
-
-            if (task != null) {
-                sendResponse(exchange, gson.toJson(task), HttpURLConnection.HTTP_OK);
-            } else {
-                sendResponse(exchange, convertToMessage("Задача с id=" + id + " не найдена"), HttpURLConnection.HTTP_NOT_FOUND);
-            }
-        } else {
-            sendResponse(exchange, convertToMessage("Неверно указан id"), HttpURLConnection.HTTP_BAD_REQUEST);
-        }
-    }
-
-    private void addTask(HttpExchange exchange) throws IOException {
-        if (!checkHeader(exchange)) {
-            sendResponse(exchange, convertToMessage("Неправильный формат запроса"), HttpURLConnection.HTTP_BAD_REQUEST);
+        Integer id = extractId(exchange);
+        if (id == null) {
+            sendErrorResponse(exchange, "Неверный формат ID", 400);
             return;
         }
 
-        InputStream inputStream = exchange.getRequestBody();
-        TaskDTO taskDTO = parseTask(inputStream);
+        Task task = taskManager.getTaskById(id);
+        if (task == null) {
+            sendErrorResponse(exchange, "Задача с id=" + id + " не найдена", 404);
+            return;
+        }
+        sendJsonResponse(exchange, task, 200);
+    }
 
-        if (taskDTO != null && isValidTaskDTO(taskDTO)) {
-            Task task = convertToTask(taskDTO);
+    private void addTask(HttpExchange exchange) throws IOException {
+        if (!isJsonContentType(exchange)) {
+            sendErrorResponse(exchange, "Требуется application/json", 400);
+            return;
+        }
 
-            try {
-                taskManager.createTask(task);
-                sendResponse(exchange, convertToMessage("Задача добавлена"), HttpURLConnection.HTTP_CREATED);
-            } catch (FileManagerSaveException e) {
-                sendResponse(exchange, convertToMessage(e.getMessage()), HttpURLConnection.HTTP_NOT_ACCEPTABLE);
+        try {
+            String json = readRequestBody(exchange);
+            System.out.println("Полученный JSON: " + json);
+
+            Task task = gson.fromJson(json, Task.class);
+            System.out.println("Десериализованная задача: " + task);
+
+            if (!isValidTask(task)) {
+                sendErrorResponse(exchange, "Некорректные данные задачи", 422);
+                return;
             }
-        } else {
-            sendResponse(exchange, convertToMessage("Неправильный формат задачи"), HttpURLConnection.HTTP_BAD_REQUEST);
+
+            Task createdTask = taskManager.createTask(task);
+            System.out.println("Созданная задача в менеджере: " + createdTask);
+
+            if (createdTask == null) {
+                sendErrorResponse(exchange, "Не удалось создать задачу", 400);
+                return;
+            }
+
+            sendJsonResponse(exchange, createdTask, 201);
+
+        } catch (JsonSyntaxException e) {
+            System.out.println("Ошибка парсинга JSON: " + e.getMessage());
+            sendErrorResponse(exchange, "Неверный формат JSON", 400);
+        } catch (Exception e) {
+            System.out.println("Ошибка при создании задачи: " + e.getMessage());
+            sendErrorResponse(exchange, "Внутренняя ошибка сервера", 500);
         }
     }
 
     private void updateTask(HttpExchange exchange) throws IOException {
-        if (!checkHeader(exchange)) {
-            sendResponse(exchange, convertToMessage("Неправильный формат запроса"), HttpURLConnection.HTTP_BAD_REQUEST);
+        if (!isJsonContentType(exchange)) {
+            sendErrorResponse(exchange, "Требуется application/json", 400);
             return;
         }
 
-        InputStream inputStream = exchange.getRequestBody();
-        TaskDTO taskDTO = parseTask(inputStream);
+        Integer id = extractId(exchange);
+        if (id == null) {
+            sendErrorResponse(exchange, "Неверный формат ID", 400);
+            return;
+        }
 
-        Integer id = getId(exchange);
-
-        if (id != null && taskDTO != null && isValidTaskDTO(taskDTO)) {
-            Task task = taskManager.getTaskById(id);
-
-            if (task != null) {
-                taskManager.updateTask(convertToTask(taskDTO, id));
-                sendResponse(exchange, convertToMessage("Задача обновлена"), HttpURLConnection.HTTP_CREATED);
-            } else {
-                sendResponse(exchange, convertToMessage("Задача с id=" + id + " не найдена"), HttpURLConnection.HTTP_NOT_FOUND);
+        try {
+            Task existingTask = taskManager.getTaskById(id);
+            if (existingTask == null) {
+                sendErrorResponse(exchange, "Задача не найдена", 404);
+                return;
             }
-        } else {
-            sendResponse(exchange, convertToMessage("Неверно указан id или тело запроса"), HttpURLConnection.HTTP_BAD_REQUEST);
+
+            Task updatedTask = parseTaskFromRequest(exchange);
+            updatedTask.setId(id);
+
+            if (!isValidTask(updatedTask)) {
+                sendErrorResponse(exchange, "Некорректные данные задачи", 422);
+                return;
+            }
+
+            taskManager.updateTask(updatedTask);
+            sendJsonResponse(exchange, updatedTask, 200);
+
+        } catch (JsonSyntaxException e) {
+            sendErrorResponse(exchange, "Неверный формат JSON", 400);
         }
     }
 
     private void deleteTaskById(HttpExchange exchange) throws IOException {
-        Integer id = getId(exchange);
+        Integer id = extractId(exchange);
+        if (id == null) {
+            sendErrorResponse(exchange, "Неверный формат ID", 400);
+            return;
+        }
 
-        if (id != null) {
-            Task task = taskManager.getTaskById(id);
+        Task task = taskManager.getTaskById(id);
+        if (task == null) {
+            sendErrorResponse(exchange, "Задача не найдена", 404);
+            return;
+        }
 
-            if (task != null) {
-                taskManager.removeTaskById(id);
-                sendResponse(exchange, convertToMessage("Задача с id=" + id + " удалена"), HttpURLConnection.HTTP_OK);
-            } else {
-                sendResponse(exchange, convertToMessage("Задача с id=" + id + " не найдена"), HttpURLConnection.HTTP_NOT_FOUND);
+        taskManager.removeTaskById(id);
+        sendStatusResponse(exchange, "Задача удалена", 200);
+    }
+
+    private Task parseTaskFromRequest(HttpExchange exchange) throws IOException {
+        String json = readRequestBody(exchange);
+        return gson.fromJson(json, Task.class);
+    }
+
+    private String readRequestBody(HttpExchange exchange) throws IOException {
+        try (InputStream is = exchange.getRequestBody()) {
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        }
+    }
+
+    private boolean isValidTask(Task task) {
+        if (task == null) {
+            System.out.println("Задача null");
+            return false;
+        }
+
+        if (task.getTaskName() == null || task.getTaskName().isBlank()) {
+            System.out.println("Отсутствует название задачи");
+            return false;
+        }
+
+        if (task.getTaskStatus() == null) {
+            System.out.println("Отсутствует статус задачи");
+            return false;
+        }
+
+        if (task.getStartTime() != null) {
+            if (task.getDuration() == null || task.getDuration().isNegative()) {
+                System.out.println("Некорректная длительность");
+                return false;
             }
-        } else {
-            sendResponse(exchange, convertToMessage("Неверно указан id"), HttpURLConnection.HTTP_BAD_REQUEST);
         }
-    }
-
-    private TaskDTO parseTask(InputStream inputStream) throws IOException {
-        String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        if (body == null || body.isEmpty()) {
-            throw new IOException("Тело запроса пустое");
-        }
-
-        try {
-            JsonElement jsonElement = JsonParser.parseString(body);
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-            return gson.fromJson(jsonObject, TaskDTO.class);
-        } catch (JsonSyntaxException | IllegalStateException e) {
-            throw new IOException("Неправильный формат JSON", e);
-        }
-    }
-
-    private Task convertToTask(TaskDTO taskDTO) {
-        return new Task(
-                taskDTO.taskName(),
-                taskDTO.description(),
-                taskDTO.taskStatus(),
-                taskDTO.duration(),
-                taskDTO.startTime()
-        );
-    }
-
-    private Task convertToTask(TaskDTO taskDTO, int id) {
-        return new Task(
-                id,
-                taskDTO.taskName(),
-                taskDTO.description(),
-                taskDTO.taskStatus(),
-                taskDTO.duration(),
-                taskDTO.startTime()
-        );
-    }
-
-    private boolean isValidTaskDTO(TaskDTO taskDTO) {
-        return taskDTO.taskName() != null && !taskDTO.taskName().isEmpty()
-                && taskDTO.description() != null && !taskDTO.description().isEmpty()
-                && taskDTO.taskStatus() != null
-                && taskDTO.duration() != null
-                && taskDTO.startTime() != null;
-    }
-
-    protected boolean checkHeader(HttpExchange exchange) {
-        String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
-        return contentType != null && contentType.equalsIgnoreCase("application/json");
+        return true;
     }
 }
 

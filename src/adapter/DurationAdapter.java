@@ -1,29 +1,18 @@
 package adapter;
 
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
-
-import java.io.IOException;
+import com.google.gson.*;
+import java.lang.reflect.Type;
 import java.time.Duration;
 
-public class DurationAdapter extends TypeAdapter<Duration> {
+
+public class DurationAdapter implements JsonSerializer<Duration>, JsonDeserializer<Duration> {
     @Override
-    public void write(JsonWriter jsonWriter, Duration duration) throws IOException {
-        if (duration == null) {
-            jsonWriter.nullValue();
-        } else {
-            jsonWriter.value(duration.toString());
-        }
+    public JsonElement serialize(Duration duration, Type type, JsonSerializationContext context) {
+        return duration == null ? JsonNull.INSTANCE : new JsonPrimitive(duration.toMinutes());
     }
 
     @Override
-    public Duration read(JsonReader jsonReader) throws IOException {
-        if (jsonReader.peek() == JsonToken.NULL) {
-            jsonReader.nextNull();
-            return Duration.ZERO;
-        }
-        return Duration.parse(jsonReader.nextString());
+    public Duration deserialize(JsonElement json, Type type, JsonDeserializationContext context) {
+        return json.isJsonNull() ? null : Duration.ofMinutes(json.getAsLong());
     }
 }

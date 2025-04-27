@@ -4,8 +4,7 @@ import classes.Epic;
 import classes.Subtask;
 import classes.Task;
 import classes.TaskStatus;
-import exception.InvalidTaskTimeException;
-
+import exception.TaskNotFoundException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,19 +28,27 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task createTask(Task task) {
-        if (timeConflict(task)) {
-            System.out.println("Пересечение по времени задач");
-            return null;
+        if (task == null) return null;
+
+        // Проверяем конфликты только если задано время
+        if (task.getStartTime() != null) {
+            if (task.getDuration() == null || task.getDuration().isNegative()) {
+                System.out.println("Некорректная длительность");
+                return null;
+            }
+
+            if (timeConflict(task)) {
+                System.out.println("Конфликт времени");
+                return null;
+            }
         }
-        int newId = nextId();
-        task.setId(newId);
-        try {
-            intersectionChecker(task);
-        } catch (InvalidTaskTimeException e) {
-            System.out.println(e.getMessage());
-        }
+
+        task.setId(nextId());
         tasks.put(task.getId(), task);
-        prioritizedTasks.add(task);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
+
         return task;
     }
 
@@ -64,8 +71,8 @@ public class InMemoryTaskManager implements TaskManager {
         }
         subtask.setId(nextId());
         Epic epic = epics.get(subtask.getEpicId());
-        if (epic == null) {
-            return null;
+        if (epic != null) {
+            epic.createSubtaskId(subtask);
         }
         subtasks.put(subtask.getId(), subtask);
         updateEpicStatus(epics.get(subtask.getEpicId()));
@@ -165,11 +172,17 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task removeTaskById(Integer id) {
-        prioritizedTasks.remove(tasks.get(id));
-        historyManager.remove(id);
-        return tasks.remove(id);
-    }
+    public void removeTaskById(Integer id) {
+        Task taskToRemove = tasks.get(id);
+        if (taskToRemove == null) {
+            throw new TaskNotFoundException(id);
+        }
+        tasks.remove(id);
+        prioritizedTasks.remove(taskToRemove);
+        historyManager.remove(taskToRemove.getId());
+        System.out.println("Удалена задача ID: " + id + " [tasks: " + tasks.size() + ", prioritized: " +
+                prioritizedTasks.size() + "]");
+        }
 
     @Override
     public void removeEpicById(Integer id) {
@@ -204,6 +217,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task getTaskById(Integer id) {
         Task task = tasks.get(id);
+        if(task == null) {
+            throw new TaskNotFoundException(id);
+        }
         historyManager.addToHistory(task);
         return task;
     }

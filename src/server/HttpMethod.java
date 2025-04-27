@@ -10,8 +10,4 @@ public enum HttpMethod {
     HttpMethod(String httpMethod) {
         this.httpMethod = httpMethod;
     }
-
-    public String getHttpMethod() {
-        return httpMethod;
-    }
 }

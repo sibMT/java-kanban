@@ -16,6 +16,7 @@ public class Epic extends Task {
     public Epic(int id, String taskName, String description, TaskStatus taskStatus, Duration duration,
                 LocalDateTime startTime) {
         super(id, taskName, description, TaskStatus.NEW, duration, startTime);
+        this.subtasks = new ArrayList<>();
     }
 
     public Epic(String taskName, String description, Duration taskDuration, LocalDateTime startTime) {
@@ -27,10 +28,16 @@ public class Epic extends Task {
     }
 
     public void createSubtaskId(Subtask subtask) {
+        if (subtasks == null) {
+            subtasks = new ArrayList<>();
+        }
         subtasks.add(subtask.getId());
     }
 
     public ArrayList<Integer> getSubtasks() {
+        if (subtasks == null) {
+            subtasks = new ArrayList<>();
+        }
         return subtasks;
     }
 

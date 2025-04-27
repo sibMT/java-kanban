@@ -82,7 +82,7 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void serializeEpic() {
-        String expected = "3,EPIC,Встретиться с друзьями,NEW,Забронировать кафе,10,10:05:00/22.03.2025,10:15:00/22.03.2025,[]\n";
+        String expected = "3,EPIC,Встретиться с друзьями,NEW,Забронировать кафе,10,10:05:00/27.04.2025,10:15:00/27.04.2025,[]\n";
 
 
         String real = epic1.serialize();
@@ -91,7 +91,7 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void serializeSubtask() {
-        String expected = "5,SUBTASK,Определиться со временем,NEW,Уведомить,10,12:00:00/22.03.2025,12:10:00/22.03.2025,3\n";
+        String expected = "5,SUBTASK,Определиться со временем,NEW,Уведомить,10,12:00:00/27.04.2025,12:10:00/27.04.2025,3\n";
 
         String real = subtask1.serialize();
         Assertions.assertEquals(expected, real);
@@ -99,7 +99,7 @@ public class FileBackedTaskManagerTest {
 
     @Test
     void serializeTask() {
-        String expected = "1,TASK,Сделать уборку,NEW,Помыть пол,10,05:10:00/22.03.2025,05:20:00/22.03.2025\n";
+        String expected = "1,TASK,Сделать уборку,NEW,Помыть пол,10,05:10:00/27.04.2025,05:20:00/27.04.2025\n";
         String real = task1.serialize();
         Assertions.assertEquals(expected, real);
     }

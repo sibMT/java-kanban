@@ -33,7 +33,7 @@ public interface TaskManager {
 
     void removeAllSubtasks();
 
-    Task removeTaskById(Integer id);
+    void removeTaskById(Integer id);
 
     void removeEpicById(Integer id);
 

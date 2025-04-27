@@ -5,9 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import controllers.TaskManager;
 import classes.Task;
 import server.HttpMethod;
-
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.util.Set;
 
 public class PrioritizedHandler extends BaseHttpHandler {
@@ -17,18 +15,31 @@ public class PrioritizedHandler extends BaseHttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        HttpMethod httpMethod = HttpMethod.valueOf(exchange.getRequestMethod());
-        String[] path = exchange.getRequestURI().getPath().split("/");
+        try {
+            HttpMethod method = HttpMethod.valueOf(exchange.getRequestMethod());
+            String path = exchange.getRequestURI().getPath();
 
-        if (httpMethod.getHttpMethod().equals("GET") && path.length == 2) {
-            getPrioritizedTasks(exchange);
-        } else {
-            sendResponse(exchange, convertToMessage("Неправильный формат запроса"), HttpURLConnection.HTTP_BAD_REQUEST);
+            if (method != HttpMethod.GET) {
+                sendErrorResponse(exchange, "Method Not Allowed", 405);
+                return;
+            }
+
+            if (path.equals("/prioritized")) {
+                getPrioritizedTasks(exchange);
+            } else {
+                sendErrorResponse(exchange, "Not Found", 404);
+            }
+        } catch (Exception e) {
+            sendErrorResponse(exchange, "Internal Server Error", 500);
         }
     }
 
     private void getPrioritizedTasks(HttpExchange exchange) throws IOException {
-        Set<Task> tasks = taskManager.getPrioritizedTasks();
-        sendResponse(exchange, gson.toJson(tasks), HttpURLConnection.HTTP_OK);
+        Set<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
+        if (prioritizedTasks.isEmpty()) {
+            sendErrorResponse(exchange, "No prioritized tasks", 404);
+            return;
+        }
+        sendJsonResponse(exchange, prioritizedTasks, 200);
     }
 }

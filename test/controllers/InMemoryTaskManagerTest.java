@@ -46,8 +46,8 @@ class InMemoryTaskManagerTest {
     @org.junit.jupiter.api.Test
     void createTask() {
         taskManager.createTask(task1);
-        String expected = "[Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW," +
-                " duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}]";
+        String expected = "[Task{id=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, " +
+                "duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}]";
         String real = taskManager.getAllTasks().toString();
         Assertions.assertEquals(expected, real);
     }
@@ -79,8 +79,8 @@ class InMemoryTaskManagerTest {
     @org.junit.jupiter.api.Test
     void updateTask() {
         taskManager.createTask(task1);
-        String expected = "Classes.Taskid=1, taskName='Пойти на работу', description='Проснуться в 6 утра'," +
-                " taskStatus=IN_PROGRESS, duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}";
+        String expected = "Task{id=1, taskName='Пойти на работу', description='Проснуться в 6 утра', taskStatus=IN_PROGRESS, " +
+                "duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}";
         Task task3 = new Task(1, "Пойти на работу", "Проснуться в 6 утра", TaskStatus.IN_PROGRESS,
                 Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
                 LocalTime.of(15, 10)));
@@ -137,10 +137,10 @@ class InMemoryTaskManagerTest {
     void getAllTasks() {
         taskManager.createTask(task1);
         taskManager.createTask(task2);
-        String expected = "[Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW," +
-                " duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}, Classes.Taskid=2," +
-                " taskName='Пойти в магазин', description='Купить молоко', taskStatus=IN_PROGRESS, duration=10," +
-                " startTime=03:10:00/08.03.2025, endTime=03:20:00/08.03.2025}]";
+        String expected = "[Task{id=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW," +
+                " duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}, Task{id=2, " +
+                "taskName='Пойти в магазин', description='Купить молоко', taskStatus=IN_PROGRESS, duration=10, " +
+                "startTime=03:10:00/08.03.2025, endTime=03:20:00/08.03.2025}]";
         String real = taskManager.getAllTasks().toString();
         Assertions.assertEquals(expected, real);
     }
@@ -226,7 +226,8 @@ class InMemoryTaskManagerTest {
         taskManager.createTask(task1);
         taskManager.createTask(task2);
         taskManager.removeTaskById(2);
-        String expected = "[Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}]";
+        String expected = "[Task{id=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, " +
+                "duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}]";
         String real = taskManager.getAllTasks().toString();
         Assertions.assertEquals(expected, real);
     }
@@ -286,8 +287,8 @@ class InMemoryTaskManagerTest {
     void getTaskById() {
         taskManager.createTask(task1);
         taskManager.createTask(task2);
-        String expected = "Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW," +
-                " duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}";
+        String expected = "Task{id=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, " +
+                "duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}";
         String real = taskManager.getTaskById(1).toString();
         Assertions.assertEquals(expected, real);
     }
@@ -317,15 +318,16 @@ class InMemoryTaskManagerTest {
         taskManager.getSubtaskById(6);
 
         Assertions.assertEquals(historySize, taskManager.getHistory().size());
-        String expected = "[Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW," +
-                " duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}, Classes.Taskid=2," +
-                " taskName='Пойти в магазин', description='Купить молоко', taskStatus=IN_PROGRESS, duration=10," +
-                " startTime=03:10:00/08.03.2025, endTime=03:20:00/08.03.2025}, Epic{id=3, name=Встретиться с друзьями," +
-                " subTasksIdList=[], status=NEW, duration=null, startTime=null, endTime=null}, Epic{id=4," +
-                " name=Пойти на работу, subTasksIdList=[], status=NEW, duration=null, startTime=null, endTime=null}," +
-                " Classes.Subtask{id=5, name=Notification, status=NEW, duration=10, startTime=12:10:00/08.03.2025," +
-                " endTime=12:20:00/08.03.2025}, Classes.Subtask{id=6, name=Поставить будильник, status=NEW, duration=10," +
-                " startTime=14:10:00/08.03.2025, endTime=14:20:00/08.03.2025}]";
+        String expected = "[Classes.Subtask{id=6, name=Поставить будильник, status=NEW, duration=10," +
+                " startTime=14:10:00/08.03.2025, endTime=14:20:00/08.03.2025}, Classes.Subtask{id=5, name=Notification, " +
+                "status=NEW, duration=10, startTime=12:10:00/08.03.2025, endTime=12:20:00/08.03.2025}, " +
+                "Epic{id=4, name=Пойти на работу, subTasksIdList=[6], status=NEW, duration=0, " +
+                "startTime=14:10:00/08.03.2025, endTime=14:10:00/08.03.2025}, Epic{id=3, name=Встретиться с друзьями, " +
+                "subTasksIdList=[5], status=NEW, duration=0, startTime=12:10:00/08.03.2025, endTime=12:10:00/08.03.2025}, " +
+                "Task{id=2, taskName='Пойти в магазин', description='Купить молоко', taskStatus=IN_PROGRESS, " +
+                "duration=10, startTime=03:10:00/08.03.2025, endTime=03:20:00/08.03.2025}, Task{id=1, " +
+                "taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, duration=10, " +
+                "startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}]";
         String real = taskManager.getHistory().toString();
         Assertions.assertEquals(expected, real);
     }
@@ -346,10 +348,10 @@ class InMemoryTaskManagerTest {
     void prioritizedTasks() {
         taskManager.createTask(task1);
         taskManager.createTask(task2);
-        String expected = "[Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW," +
-                " duration=10, startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}, Classes.Taskid=2," +
-                " taskName='Пойти в магазин', description='Купить молоко', taskStatus=IN_PROGRESS, duration=10," +
-                " startTime=03:10:00/08.03.2025, endTime=03:20:00/08.03.2025}]";
+        String expected = "[Task{id=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, duration=10," +
+                " startTime=01:10:00/08.03.2025, endTime=01:20:00/08.03.2025}, Task{id=2, taskName='Пойти в магазин'," +
+                " description='Купить молоко', taskStatus=IN_PROGRESS, duration=10, startTime=03:10:00/08.03.2025," +
+                " endTime=03:20:00/08.03.2025}]";
         String real = taskManager.getPrioritizedTasks().toString();
         Assertions.assertEquals(expected, real);
     }
