@@ -56,8 +56,8 @@ public class HttpTaskManagerTest {
         resetManager();
     }
 
-    @AfterAll
-    public static void tearDown() {
+    @AfterEach
+    void tearDown() {
         taskServer.stop(0);
     }
 
