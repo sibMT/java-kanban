@@ -1,5 +1,6 @@
 package server.handler;
 
+import classes.Subtask;
 import com.google.gson.*;
 import com.sun.net.httpserver.HttpExchange;
 import controllers.TaskManager;
@@ -9,13 +10,14 @@ import server.HttpMethod;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
 
 public class TaskHandler extends BaseHttpHandler {
-    public TaskHandler(TaskManager taskManager, Gson gson) {
-        super(taskManager, gson);
+    public TaskHandler(TaskManager taskManager) {
+        super(taskManager);
     }
 
     @Override
@@ -202,7 +204,46 @@ public class TaskHandler extends BaseHttpHandler {
                 return false;
             }
         }
+
+        if(hasConflict(task)) {
+            throw new ValidationException("Пересечение по времени","Код ошибки 406");
+        }
         return true;
+    }
+
+    private boolean hasConflict(Task task) {
+        if(task.getStartTime() == null) {
+            return false;
+        }
+        LocalDateTime start = task.getStartTime();
+        LocalDateTime end = task.getEndTime();
+
+        for(Task newTask : taskManager.getAllTasks()) {
+            if(newTask.getId() != task.getId() &&
+            newTask.getStartTime() != null) {
+
+                LocalDateTime newStart = newTask.getStartTime();
+                LocalDateTime newEnd = newTask.getEndTime();
+
+                if(!(end.isBefore(newStart) || start.isAfter(newEnd))) {
+                    System.out.println("Пересечение с задачей ID=" + newTask.getId());
+                    return true;
+                }
+            }
+        }
+        for(Subtask newSubtask : taskManager.getAllSubtasks()) {
+            if(newSubtask.getId() != task.getId() &&
+            newSubtask.getStartTime() != null) {
+                LocalDateTime newStart = newSubtask.getStartTime();
+                LocalDateTime newEnd = newSubtask.getEndTime();
+
+                if(!(end.isBefore(newStart) || start.isAfter(newEnd))) {
+                    System.out.println("Пересечение с подзадачей ID=" + newSubtask.getId());
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

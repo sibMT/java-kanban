@@ -1,12 +1,20 @@
 package server.handler;
 
+import adapter.DurationAdapter;
+import adapter.LocalDateTimeAdapter;
+import adapter.TaskStatusAdapter;
+import classes.TaskStatus;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import controllers.TaskManager;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -14,9 +22,13 @@ public abstract class BaseHttpHandler implements HttpHandler {
     protected TaskManager taskManager;
     protected Gson gson;
 
-    public BaseHttpHandler(TaskManager taskManager, Gson gson) {
+    public BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
-        this.gson = gson;
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
+                .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .create();
     }
 
 
@@ -61,7 +73,10 @@ public abstract class BaseHttpHandler implements HttpHandler {
                         .anyMatch(ct -> ct.equalsIgnoreCase("application/json"));
     }
 
-    protected record ErrorResponse(String message, int status, String path) {}
-    protected record StatusResponse(String message, int status) {}
+    protected record ErrorResponse(String message, int status, String path) {
+    }
+
+    protected record StatusResponse(String message, int status) {
+    }
 
 }

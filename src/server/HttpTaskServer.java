@@ -1,11 +1,5 @@
 package server;
 
-import adapter.DurationAdapter;
-import adapter.LocalDateTimeAdapter;
-import adapter.TaskStatusAdapter;
-import classes.TaskStatus;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpServer;
 import controllers.Managers;
 import controllers.TaskManager;
@@ -13,8 +7,6 @@ import server.handler.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.time.Duration;
-import java.time.LocalDateTime;
 
 
 public class HttpTaskServer {
@@ -31,17 +23,11 @@ public class HttpTaskServer {
 
         InetSocketAddress address = new InetSocketAddress(HOST, PORT);
         httpServer = HttpServer.create(address, 0);
-
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
-                .registerTypeAdapter(Duration.class, new DurationAdapter())
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .create();
-        httpServer.createContext("/tasks", new TaskHandler(taskManager, gson));
-        httpServer.createContext("/epics", new EpicHandler(taskManager, gson));
-        httpServer.createContext("/subtasks", new SubtaskHandler(taskManager, gson));
-        httpServer.createContext("/history", new HistoryHandler(taskManager, gson));
-        httpServer.createContext("/prioritized", new PrioritizedHandler(taskManager, gson));
+        httpServer.createContext("/tasks", new TaskHandler(taskManager));
+        httpServer.createContext("/epics", new EpicHandler(taskManager));
+        httpServer.createContext("/subtasks", new SubtaskHandler(taskManager));
+        httpServer.createContext("/history", new HistoryHandler(taskManager));
+        httpServer.createContext("/prioritized", new PrioritizedHandler(taskManager));
     }
 
     public void start() {

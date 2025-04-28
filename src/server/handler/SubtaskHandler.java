@@ -14,8 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class SubtaskHandler extends BaseHttpHandler {
-    public SubtaskHandler(TaskManager taskManager, Gson gson) {
-        super(taskManager, gson);
+    public SubtaskHandler(TaskManager taskManager) {
+        super(taskManager);
     }
 
     @Override
