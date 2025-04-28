@@ -1,24 +1,43 @@
 package classes;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 
 public class Epic extends Task {
     private ArrayList<Integer> subtasks = new ArrayList<>();
 
     public Epic(String taskName, String description) {
-        super(taskName, description, TaskStatus.NEW);
+        super(taskName, description, TaskStatus.NEW, Duration.ofMinutes(0), LocalDateTime.now());
     }
 
-    public Epic(int id, String taskName, String description, TaskStatus taskStatus) {
-        super(id, taskName, description, taskStatus);
+    public Epic(int id, String taskName, String description, TaskStatus taskStatus, Duration duration,
+                LocalDateTime startTime) {
+        super(id, taskName, description, TaskStatus.NEW, duration, startTime);
+        this.subtasks = new ArrayList<>();
+    }
+
+    public Epic(String taskName, String description, Duration taskDuration, LocalDateTime startTime) {
+        super(taskName, description, TaskStatus.NEW, taskDuration, startTime);
+    }
+
+    public Epic(int id, String taskName, String description) {
+        super(id, taskName, description, TaskStatus.NEW, Duration.ofMinutes(0), LocalDateTime.now());
     }
 
     public void createSubtaskId(Subtask subtask) {
+        if (subtasks == null) {
+            subtasks = new ArrayList<>();
+        }
         subtasks.add(subtask.getId());
     }
 
     public ArrayList<Integer> getSubtasks() {
+        if (subtasks == null) {
+            subtasks = new ArrayList<>();
+        }
         return subtasks;
     }
 
@@ -28,5 +47,37 @@ public class Epic extends Task {
 
     public void clearSubtasks() {
         subtasks.clear();
+    }
+
+    @Override
+    public String serialize() {
+        long durationMinutes = (getDuration() != null) ? getDuration().toMinutes() : 0;
+        return String.format("%s,%s,%s,%s,%s,%d,%s,%s,%s\n",
+                getId(),
+                TaskType.EPIC,
+                getTaskName(),
+                getTaskStatus(),
+                getDescription(),
+                durationMinutes,
+                (getStartTime() != null ? getStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy")) : "null"),
+                (getEndTime() != null ? getEndTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy")) : "null"),
+                subtasks);
+    }
+
+    @Override
+    public String toString() {
+        return "Epic{" +
+                "id=" + getId() +
+                ", name=" + getTaskName() +
+                ", subTasksIdList=" + subtasks +
+                ", status=" + getTaskStatus() +
+                ", duration=" + (getDuration() != null ? getDuration().toMinutes() : "null") + // Проверка на null
+                ", startTime=" + (getStartTime() != null
+                ? getStartTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"))
+                : "null") +
+                ", endTime=" + (getEndTime() != null
+                ? getEndTime().format(DateTimeFormatter.ofPattern("HH:mm:ss/dd.MM.yyyy"))
+                : "null") +
+                '}';
     }
 }

@@ -9,6 +9,11 @@ import classes.Task;
 import classes.TaskStatus;
 import org.junit.jupiter.api.Assertions;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 
 class InMemoryHistoryManagerTest {
     private HistoryManager historyManager;
@@ -24,13 +29,27 @@ class InMemoryHistoryManagerTest {
     @BeforeEach
     void init() {
         historyManager = Managers.getDefaultHistory();
-        task1 = new Task(1, "Сделать уборку", "Помыть пол", TaskStatus.NEW);
-        task2 = new Task(2, "Пойти в магазин", "Купить молоко", TaskStatus.IN_PROGRESS);
-        epic1 = new Epic(3, "Встретиться с друзьями", "Забронировать кафе", TaskStatus.NEW);
-        epic2 = new Epic(4, "Пойти на работу", "Проснуться в 6 утра", TaskStatus.NEW);
-        subtask1 = new Subtask(5, 3, "Определиться со временем", "Уведомить", TaskStatus.NEW);
-        subtask2 = new Subtask(6, 3, "Notification", "Meeting 10oclock", TaskStatus.NEW);
-        subtask3 = new Subtask(7, 4, "Поставить будильник", "Charge Phone", TaskStatus.NEW);
+        task1 = new Task(1, "Сделать уборку", "Помыть пол", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(5, 10)));
+        task2 = new Task(2, "Пойти в магазин", "Купить молоко", TaskStatus.IN_PROGRESS,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(6, 10)));
+        epic1 = new Epic(3, "Встретиться с друзьями", "Забронировать кафе", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(7, 10)));
+        epic2 = new Epic(4, "Пойти на работу", "Проснуться в 6 утра", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(8, 10)));
+        subtask1 = new Subtask(5, 3, "Определиться со временем", "Уведомить", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(9, 10)));
+        subtask2 = new Subtask(6, 3, "Notification", "Meeting 10oclock", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(10, 10)));
+        subtask3 = new Subtask(7, 4, "Поставить будильник", "Charge Phone", TaskStatus.NEW,
+                Duration.ofMinutes(10), LocalDateTime.of(LocalDate.of(2025, 3, 8),
+                LocalTime.of(11, 10)));
     }
 
     @Test
@@ -43,12 +62,7 @@ class InMemoryHistoryManagerTest {
         historyManager.addToHistory(subtask2);
         historyManager.addToHistory(subtask3);
 
-        String expected = "[Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW}," +
-                " Classes.Taskid=2, taskName='Пойти в магазин', description='Купить молоко', taskStatus=IN_PROGRESS}," +
-                " Classes.Taskid=3, taskName='Встретиться с друзьями', description='Забронировать кафе', taskStatus=NEW}," +
-                " Classes.Taskid=4, taskName='Пойти на работу', description='Проснуться в 6 утра', taskStatus=NEW}, " +
-                "Classes.Subtask{id=5, name=Определиться со временем, status=NEW}, Classes.Subtask{id=6," +
-                " name=Notification, status=NEW}, Classes.Subtask{id=7, name=Поставить будильник, status=NEW}]";
+        String expected = "[Classes.Subtask{id=7, name=Поставить будильник, status=NEW, duration=10, startTime=11:10:00/08.03.2025, endTime=11:20:00/08.03.2025}, Classes.Subtask{id=6, name=Notification, status=NEW, duration=10, startTime=10:10:00/08.03.2025, endTime=10:20:00/08.03.2025}, Classes.Subtask{id=5, name=Определиться со временем, status=NEW, duration=10, startTime=09:10:00/08.03.2025, endTime=09:20:00/08.03.2025}, Epic{id=4, name=Пойти на работу, subTasksIdList=[], status=NEW, duration=10, startTime=08:10:00/08.03.2025, endTime=08:20:00/08.03.2025}, Epic{id=3, name=Встретиться с друзьями, subTasksIdList=[], status=NEW, duration=10, startTime=07:10:00/08.03.2025, endTime=07:20:00/08.03.2025}, Task{id=2, taskName='Пойти в магазин', description='Купить молоко', taskStatus=IN_PROGRESS, duration=10, startTime=06:10:00/08.03.2025, endTime=06:20:00/08.03.2025}, Task{id=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, duration=10, startTime=05:10:00/08.03.2025, endTime=05:20:00/08.03.2025}]";
         String real = historyManager.getHistory().toString();
         Assertions.assertEquals(expected, real);
     }
@@ -63,12 +77,17 @@ class InMemoryHistoryManagerTest {
         historyManager.addToHistory(subtask2);
         historyManager.addToHistory(subtask3);
 
-        String expected = "[Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW}," +
-                " Classes.Taskid=2, taskName='Пойти в магазин', description='Купить молоко', taskStatus=IN_PROGRESS}," +
-                " Classes.Taskid=3, taskName='Встретиться с друзьями', description='Забронировать кафе', taskStatus=NEW}," +
-                " Classes.Taskid=4, taskName='Пойти на работу', description='Проснуться в 6 утра', taskStatus=NEW}," +
-                " Classes.Subtask{id=5, name=Определиться со временем, status=NEW}, Classes.Subtask{id=6," +
-                " name=Notification, status=NEW}, Classes.Subtask{id=7, name=Поставить будильник, status=NEW}]";
+        String expected = "[Classes.Subtask{id=7, name=Поставить будильник, status=NEW, duration=10, " +
+                "startTime=11:10:00/08.03.2025, endTime=11:20:00/08.03.2025}, Classes.Subtask{id=6, name=Notification, " +
+                "status=NEW, duration=10, startTime=10:10:00/08.03.2025, endTime=10:20:00/08.03.2025}, " +
+                "Classes.Subtask{id=5, name=Определиться со временем, status=NEW, duration=10, startTime=09:10:00/08.03.2025, " +
+                "endTime=09:20:00/08.03.2025}, Epic{id=4, name=Пойти на работу, subTasksIdList=[], status=NEW," +
+                " duration=10, startTime=08:10:00/08.03.2025, endTime=08:20:00/08.03.2025}, Epic{id=3, " +
+                "name=Встретиться с друзьями, subTasksIdList=[], status=NEW, duration=10, startTime=07:10:00/08.03.2025, " +
+                "endTime=07:20:00/08.03.2025}, Task{id=2, taskName='Пойти в магазин', description='Купить молоко', " +
+                "taskStatus=IN_PROGRESS, duration=10, startTime=06:10:00/08.03.2025, endTime=06:20:00/08.03.2025}," +
+                " Task{id=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, duration=10, " +
+                "startTime=05:10:00/08.03.2025, endTime=05:20:00/08.03.2025}]";
         String real = historyManager.getHistory().toString();
         Assertions.assertEquals(expected, real);
     }
@@ -105,11 +124,14 @@ class InMemoryHistoryManagerTest {
         historyManager.remove(2);
         historyManager.remove(4);
 
-        String expected = "[Classes.Taskid=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW}," +
-                " Classes.Taskid=3, taskName='Встретиться с друзьями', description='Забронировать кафе'," +
-                " taskStatus=NEW}, Classes.Subtask{id=5, name=Определиться со временем, status=NEW}," +
-                " Classes.Subtask{id=6, name=Notification, status=NEW}, Classes.Subtask{id=7, name=Поставить будильник," +
-                " status=NEW}]";
+        String expected = "[Classes.Subtask{id=7, name=Поставить будильник, status=NEW, duration=10, " +
+                "startTime=11:10:00/08.03.2025, endTime=11:20:00/08.03.2025}, Classes.Subtask{id=6, " +
+                "name=Notification, status=NEW, duration=10, startTime=10:10:00/08.03.2025, endTime=10:20:00/08.03.2025}, " +
+                "Classes.Subtask{id=5, name=Определиться со временем, status=NEW, duration=10, startTime=09:10:00/08.03.2025, " +
+                "endTime=09:20:00/08.03.2025}, Epic{id=3, name=Встретиться с друзьями, subTasksIdList=[], " +
+                "status=NEW, duration=10, startTime=07:10:00/08.03.2025, endTime=07:20:00/08.03.2025}, " +
+                "Task{id=1, taskName='Сделать уборку', description='Помыть пол', taskStatus=NEW, duration=10, " +
+                "startTime=05:10:00/08.03.2025, endTime=05:20:00/08.03.2025}]";
         String real = historyManager.getHistory().toString();
         Assertions.assertEquals(expected, real);
     }

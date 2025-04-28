@@ -6,6 +6,7 @@ import classes.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public interface TaskManager {
     Task createTask(Task task);
@@ -32,7 +33,7 @@ public interface TaskManager {
 
     void removeAllSubtasks();
 
-    Task removeTaskById(Integer id);
+    void removeTaskById(Integer id);
 
     void removeEpicById(Integer id);
 
@@ -42,7 +43,11 @@ public interface TaskManager {
 
     Task getTaskById(Integer id);
 
+    Subtask getSubtaskById(Integer id);
+
     List<Task> getHistory();
 
-    Subtask getSubtaskById(Integer id);
+    Set<Task> getPrioritizedTasks();
+
+    List<Subtask> getSubtasksByEpicId(Integer epicId);
 }
