@@ -1,18 +1,17 @@
 package server.handler;
 
 import classes.Subtask;
-import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import controllers.TaskManager;
 import classes.Epic;
 import server.HttpMethod;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 
 
 public class EpicHandler extends BaseHttpHandler {
@@ -49,18 +48,18 @@ public class EpicHandler extends BaseHttpHandler {
     }
 
     private void handlePost(HttpExchange exchange) throws IOException {
-            String[] pathParts = exchange.getRequestURI().getPath().split("/");
+        String[] pathParts = exchange.getRequestURI().getPath().split("/");
 
-            if (pathParts.length >= 3 && !pathParts[2].isEmpty()) {
-                try {
-                    Integer.parseInt(pathParts[2]);
-                    updateEpic(exchange);
-                } catch (NumberFormatException e) {
-                    sendError(exchange, "Invalid Epic ID format", 400);
-                }
-            } else {
-                addEpic(exchange);
+        if (pathParts.length >= 3 && !pathParts[2].isEmpty()) {
+            try {
+                Integer.parseInt(pathParts[2]);
+                updateEpic(exchange);
+            } catch (NumberFormatException e) {
+                sendError(exchange, "Invalid Epic ID format", 400);
             }
+        } else {
+            addEpic(exchange);
+        }
     }
 
     private void addEpic(HttpExchange exchange) throws IOException {
@@ -104,31 +103,31 @@ public class EpicHandler extends BaseHttpHandler {
     }
 
     private void getEpicSubtasks(HttpExchange exchange) throws IOException {
-            System.out.println("Request path: " + exchange.getRequestURI().getPath());
+        System.out.println("Request path: " + exchange.getRequestURI().getPath());
 
-            Integer epicId = extractId(exchange.getRequestURI());
-            System.out.println("Extracted epic ID: " + epicId);
+        Integer epicId = extractId(exchange.getRequestURI());
+        System.out.println("Extracted epic ID: " + epicId);
 
-            if (epicId == null) {
-                System.out.println("Invalid epic ID");
-                sendError(exchange, "Invalid Epic ID", 400);
+        if (epicId == null) {
+            System.out.println("Invalid epic ID");
+            sendError(exchange, "Invalid Epic ID", 400);
+            return;
+        }
+
+        try {
+            List<Subtask> subtasks = taskManager.getSubtasksByEpicId(epicId);
+            System.out.println("Found subtasks: " + (subtasks != null ? subtasks.size() : "null"));
+
+            if (subtasks == null) {
+                sendError(exchange, "Epic Not Found", 404);
                 return;
             }
-
-            try {
-                List<Subtask> subtasks = taskManager.getSubtasksByEpicId(epicId);
-                System.out.println("Found subtasks: " + (subtasks != null ? subtasks.size() : "null"));
-
-                if (subtasks == null) {
-                    sendError(exchange, "Epic Not Found", 404);
-                    return;
-                }
-                sendJsonResponse(exchange, subtasks, 200);
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
-                e.printStackTrace();
-                sendError(exchange, "Failed to get subtasks", 500);
-            }
+            sendJsonResponse(exchange, subtasks, 200);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            e.printStackTrace();
+            sendError(exchange, "Failed to get subtasks", 500);
+        }
     }
 
     private void updateEpic(HttpExchange exchange) throws IOException {
@@ -214,6 +213,9 @@ public class EpicHandler extends BaseHttpHandler {
         return contentType != null && contentType.equalsIgnoreCase("application/json");
     }
 
-    private record JsonResponse(String message) {}
-    private record ErrorResponse(String error, int status) {}
+    private record JsonResponse(String message) {
+    }
+
+    private record ErrorResponse(String error, int status) {
+    }
 }
